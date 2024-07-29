@@ -65,3 +65,24 @@ class BlogTests(TestCase):
         self.assertEqual(Post.objects.last().title, "New title")
         self.assertEqual(Post.objects.last().body, "New text")
         self.assertEqual(Post.objects.last().author.username, "testuser")
+
+    def test_post_updateview(self):
+        self.client.login(username="testuser", password="secret")
+        response = self.client.post(
+            reverse("post_edit", kwargs={"pk": self.post.pk}),
+            {
+                "title": "Updated title",
+                "body": "Updated body",
+            }
+        )
+        self.assertEqual(response.status_code, 302)
+        self.post.refresh_from_db()
+        self.assertEqual(self.post.title, "Updated title")
+        self.assertEqual(self.post.body, "Updated body")
+
+    def test_url_exists_at_correct_location_updateview(self):
+        self.client.login(username="testuser", password="secret")
+        response = self.client.get(reverse("post_edit", kwargs={"pk": self.post.pk}))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Edit post")
+        self.assertTemplateUsed(response, "post_edit.html")
